@@ -101,7 +101,7 @@ test('readme', t => {
   sameAsJs(`a.b + c(d-1)`, { a: { b: 1 }, c: x => x * 2, d: 3 })
   sameAsJs(`min * 60 + "sec"`, { min: 5 })
 
-  binary('|>', 60), operator('|>', (a, b) => (a = compile(a), b = compile(b), (ctx) => a(ctx)?.pipe?.(b(ctx)) || (a(ctx) | b(ctx))))
+  binary('|>', 60); operator('|>', (a, b) => (a = compile(a), b = compile(b), (ctx) => a(ctx)?.pipe?.(b(ctx)) || (a(ctx) | b(ctx))))
 
   let evaluate = subscript(`
     interval(350)
@@ -118,7 +118,7 @@ test('readme', t => {
   })
 
   // add === binary operator
-  binary('===', 9), operator('===', (a, b) => (a = compile(a), b = compile(b), ctx => a(ctx) === b(ctx)))
+  binary('===', 9); operator('===', (a, b) => (a = compile(a), b = compile(b), ctx => a(ctx) === b(ctx)))
 
   // add literals
   // set('true',20, [,a => ()=>true])
@@ -580,7 +580,7 @@ test('err: wrong sequences', t => {
 })
 
 test('low-precedence unary', t => {
-  unary('&', PREC_MULT - 0.5), operator('&', (a) => (a = compile(a), ctx => ~a(ctx)))
+  unary('&', PREC_MULT - 0.5); operator('&', (a) => (a = compile(a), ctx => ~a(ctx)))
   is(subscript('&a+b*c')({ a: 1, b: 2, c: 3 }), 4)
   is(subscript('&a*b+c')({ a: 1, b: 2, c: 3 }), 0)
 })

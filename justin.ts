@@ -14,7 +14,7 @@ import './feature/optional.js'
 import './feature/spread.js'
 import { PREC_ASSIGN, PREC_EQ, PREC_LOR, PREC_COMP } from './src/const.js'
 
-binary('in', PREC_COMP), operator('in', (a, b) => b && (a = compile(a), b = compile(b), ctx => a(ctx) in b(ctx)))
+binary('in', PREC_COMP); operator('in', (a, b) => b && (a = compile(a), b = compile(b), ctx => a(ctx) in b(ctx)))
 
 // register !==, ===
 binary('===', PREC_EQ), binary('!==', 9)

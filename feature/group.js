@@ -8,5 +8,5 @@ group('()', PREC_ACCESS)
 operator('()', (a, b) => b === undefined && (!a && err('Empty ()'), compile(a)))
 
 const last = (...args) => (args = args.map(compile), ctx => args.map(arg => arg(ctx)).pop())
-nary(',', PREC_SEQ), operator(',', last)
-nary(';', PREC_STATEMENT, true), operator(';', last)
+nary(',', PREC_SEQ); operator(',', last)
+nary(';', PREC_STATEMENT, true); operator(';', last)

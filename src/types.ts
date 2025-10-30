@@ -4,9 +4,11 @@ export type charCode = number & { __brand: 'charCode' }
 export type precedence = number & { __brand: 'precedence' }
 export type token = string & { __brand: 'token' } | knownToken & {__brand?: 'token'}
 
-type knownToken = justinToken
+type knownToken = justinToken | featureToken
 
-type justinToken = 'in' | '===' | '!==' | '??' | '??=' | '||=' | '&&=' | '>>>' | '>>>=' | 'undefined' | 'NaN' | 'null' 
+type justinToken = 'in' | '===' | '!==' | '??' | '??=' | '||=' | '&&=' | '>>>' | '>>>=' | 'undefined' | 'NaN' | 'null'
+
+type featureToken = '?' | '...' | '>>' | '<<' | '>>=' | '<<=' | '**' | '?.' | '{}' | ':' | '*' | '/' | '%' | '*=' | '/=' | '%=' | '!' | '||' | '&&' | '++' | '--' | '==' | '!=' | '>' | '<' | '>=' | '<=' | ',' | ';' | '/*' | '//' | '()' | 'true' | 'false' | '~' | '|' | '&' | '^' | '=' | '[]' | '=>' | '+' | '-' | '+=' | '-=' | '.' 
 
 declare global {
     interface String {

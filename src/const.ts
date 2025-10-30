@@ -22,6 +22,9 @@ export const STAR = 42 as charCode
 // ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_precedence
 // we mult by 10 to leave space for extensions
 
+export const PREC_0 = 0 as precedence
+export const PREC_DEFAULTED = 32 as precedence // why
+
 export const PREC_STATEMENT = 5 as precedence
 export const PREC_SEQ = 10 as precedence
 export const PREC_ASSIGN = 20 as precedence

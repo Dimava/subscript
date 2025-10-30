@@ -29,7 +29,7 @@ export function operator(op: token, fn: OperatorFunction): void {
 }
 
 // takes node and returns evaluator depending on the case with passed params (container, path, ctx) =>
-export function prop(a: Node, fn: Function, generic?: boolean) {
+export function prop(a: Node, fn: Function, generic: boolean) {
   // (((x))) => x
   if (a[0] === '()' && a.length == 2) return prop(a[1], fn, generic)
   // (_, name, ctx) => ctx[path]

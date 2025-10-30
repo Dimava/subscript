@@ -1,4 +1,4 @@
-import { SPACE } from "./const.js";
+import { PREC_0, PREC_DEFAULTED, SPACE } from "./const.js";
 /** current index */
 export let idx;
 /** current string */
@@ -24,7 +24,7 @@ export function err(msg = 'Bad syntax') {
     const last = lines.pop();
     const before = cur.slice(idx - 108, idx).split('\n').pop();
     const after = cur.slice(idx, idx + 108).split('\n').shift();
-    throw EvalError(`${msg} at ${lines.length}:${last.length} \`${idx >= 108 ? '…' : ''}${before}┃${after}\``, 'font-weight: bold');
+    throw EvalError(`${msg} at ${lines.length}:${last.length} \`${idx >= 108 ? '…' : ''}${before}┃${after}\``);
 }
 /** advance until condition meets */
 export function next(is, from = idx) {
@@ -40,8 +40,8 @@ export function skip() {
 /** a + b - c */
 export function expr(prec = 0, end) {
     let cc;
-    let token = undefined;
-    let newNode = undefined;
+    let token = null;
+    let newNode = null;
     // chunk/token parser - parse a sequence of tokens/operators into an expression tree
     while (true) {
         // Skip whitespace and get the next character code
@@ -54,7 +54,7 @@ export function expr(prec = 0, end) {
         // Call the operator handler with the current token and precedence
         // FIXME: extra work is happening here, when lookup bails out due to lower precedence -
         // it makes extra `space` call for parent exprs on the same character to check precedence again
-        newNode = lookup[cc]?.(token, prec);
+        newNode = lookup[cc]?.(token, prec) ?? null;
         // Strategy 2: If no operator handler matched (returned null/undefined),
         // and we don't have a token yet, parse a literal/identifier
         // Token sequences are forbidden: `a b`, `a "b"`, `1.32 a`
@@ -93,11 +93,16 @@ export function id(c) {
     );
 }
 /** create operator checker/mapper (see examples) */
-export function token(op, prec = SPACE, map, c = op.charCodeAt(0), l = op.length, prev = lookup[c], word = op.toUpperCase() !== op // make sure word boundary comes after word operator
+export function token(op, prec = PREC_DEFAULTED, map, c = op.charCodeAt(0), l = op.length, prev = lookup[c], word = op.toUpperCase() !== op // make sure word boundary comes after word operator
 ) {
-    return lookup[c] = function (a, curPrec, curOp, from = idx) {
+    return lookup[c] = (a, curPrec, curOp, from = idx) => {
         // check if operator matches
-        const opMatches = curOp ? op == curOp : ((l < 2 || cur.substr(idx, l) == op) && (curOp = op));
+        if (!curOp) {
+            if (l < 2 || cur.slice(idx, idx + l) === op) {
+                curOp = op;
+            }
+        }
+        const opMatches = op === curOp;
         if (!opMatches) {
             return prev?.(a, curPrec, curOp);
         }
@@ -188,7 +193,7 @@ export function access(op, prec) {
     return token(op[0], prec, (a) => {
         if (!a)
             return;
-        return [op, a, expr(0, op.charCodeAt(1)) || null];
+        return [op, a, expr(PREC_0, op.charCodeAt(1)) || null];
     });
 }
 export default parse;

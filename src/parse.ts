@@ -1,7 +1,7 @@
-import { SPACE } from "./const.js"
+import { PREC_0, PREC_DEFAULTED, SPACE } from "./const.js"
 import type { index, charCode, precedence, char, token, Node, GroupNode, AccessNode, UnaryNode, BinaryNode, NaryNode } from "./types.js"
 
-type OpFunc = (a: Node, curPrec: precedence, curOp?: token, from?: index) => Node | undefined
+type OpFunc = (a: Node | undefined, curPrec: precedence, curOp?: token, from?: index) => Node | undefined
 
 /** current index */
 export let idx: index
@@ -31,7 +31,7 @@ export function err(msg: string = 'Bad syntax',
   const last = lines.pop()!
   const before = cur.slice(idx - 108, idx).split('\n').pop()
   const after = cur.slice(idx, idx + 108).split('\n').shift()
-  throw EvalError(`${msg} at ${lines.length}:${last.length} \`${idx >= 108 ? '…' : ''}${before}┃${after}\``, 'font-weight: bold')
+  throw EvalError(`${msg} at ${lines.length}:${last.length} \`${idx >= 108 ? '…' : ''}${before}┃${after}\``)
 }
 
 /** advance until condition meets */
@@ -49,8 +49,8 @@ export function skip(): char {
 /** a + b - c */
 export function expr(prec: precedence = 0 as precedence, end?: charCode): Node {
   let cc: charCode
-  let token: Node = undefined
-  let newNode: Node = undefined
+  let token: Node = null
+  let newNode: Node = null
 
   // chunk/token parser - parse a sequence of tokens/operators into an expression tree
   while (true) {
@@ -66,7 +66,7 @@ export function expr(prec: precedence = 0 as precedence, end?: charCode): Node {
     // Call the operator handler with the current token and precedence
     // FIXME: extra work is happening here, when lookup bails out due to lower precedence -
     // it makes extra `space` call for parent exprs on the same character to check precedence again
-    newNode = lookup[cc]?.(token, prec)
+    newNode = lookup[cc]?.(token, prec) ?? null
 
     // Strategy 2: If no operator handler matched (returned null/undefined),
     // and we don't have a token yet, parse a literal/identifier
@@ -114,16 +114,21 @@ export function id(c: charCode): boolean {
 /** create operator checker/mapper (see examples) */
 export function token(
   op: token,
-  prec: precedence = SPACE as precedence,
-  map: (a: Node) => Node | undefined,
+  prec: precedence = PREC_DEFAULTED,
+  map: (a: Node | undefined) => Node | undefined,
   c: charCode = op.charCodeAt(0 as index),
   l: number = op.length,
   prev = lookup[c],
   word: boolean = op.toUpperCase() !== op // make sure word boundary comes after word operator
 ): OpFunc {
-  return lookup[c] = function (a: Node, curPrec: precedence, curOp?: token, from: index = idx): Node | undefined {
+  return lookup[c] = (a, curPrec, curOp, from = idx) => {
     // check if operator matches
-    const opMatches = curOp ? op == curOp : ((l < 2 || cur.substr(idx, l) == op) && (curOp = op))
+    if (!curOp) {
+      if (l < 2 || cur.slice(idx, idx + l) === op) {
+        curOp = op
+      }
+    }
+    const opMatches = op === curOp
 
     if (!opMatches) {
       return prev?.(a, curPrec, curOp)
@@ -186,7 +191,7 @@ export function nary(op: token, prec: precedence, _skips?: boolean): OpFunc {
 
       // if beginning of sequence - init node
       if (a?.[0] !== op) {
-        a = [op, a || null]
+        a = [op, a || null] satisfies NaryNode
       }
 
       // comments can return same-token expr
@@ -219,7 +224,7 @@ export function group(op: token, prec: precedence): OpFunc {
 export function access(op: token, prec: precedence): OpFunc {
   return token(op[0] as token, prec, (a) => {
     if (!a) return
-    return [op, a, expr(0 as precedence, op.charCodeAt(1 as index)) || null] satisfies AccessNode
+    return [op, a, expr(PREC_0, op.charCodeAt(1 as index)) || null] satisfies AccessNode
   })
 }
 

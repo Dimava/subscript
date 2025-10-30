@@ -272,7 +272,7 @@ test('parse: nary', t => {
   throws(() => parse('a;&b'), /syntax/)
 })
 
-test.skip('parse: in operator', async t => {
+test('parse: in operator', async t => {
   await import('../feature/in.js')
 
   is(parse('inc in bin'), ['in', 'inc', 'bin'])

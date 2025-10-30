@@ -338,7 +338,7 @@ test('chains', t => {
   sameAsJs('a(1)(b)("c")', { a: v => w => z => v + w + z, b: 'b' })
 })
 
-test.skip('ext: in operator', async t => {
+test('ext: in operator', async t => {
   await import('../feature/in.js')
 
   sameAsJs('inc in bin', { bin: { inc: 1 }, inc: 'inc' })

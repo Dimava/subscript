@@ -2,8 +2,11 @@ export type index = number & { __brand: 'index' }
 export type char = string & { __brand: 'char' }
 export type charCode = number & { __brand: 'charCode' }
 export type precedence = number & { __brand: 'precedence' }
-export type token = string & { __brand: 'token' }
+export type token = string & { __brand: 'token' } | knownToken & {__brand?: 'token'}
 
+type knownToken = justinToken
+
+type justinToken = 'in' | '===' | '!==' | '??' | '??=' | '||=' | '&&=' | '>>>' | '>>>=' | 'undefined' | 'NaN' | 'null' 
 
 declare global {
     interface String {
@@ -19,4 +22,4 @@ export type GroupNode = [token, Node]
 export type AccessNode = [token, Node, Node]
 export type LiteralNode = [undefined, token]
 export type VariableNode = token
-export type PlaceholderNode = null | undefined
+export type PlaceholderNode = null

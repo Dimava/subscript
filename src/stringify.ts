@@ -17,7 +17,7 @@ export function stringify(node: Node): string {
   if (!op) return JSON.stringify(args[0])
 
   // (a), a(b)
-  if (op == '[]' || op == '{}' || op == '()') return (args.length > 1 ? stringify(args.shift()) : '') + op[0] + (stringify(args[0])) + op[1]
+  if (op == '[]' || op == '{}' || op == '()') return (args.length > 1 ? stringify(args.shift()!) : '') + op[0] + (stringify(args[0])) + op[1]
 
   // +a
   if (args.length === 1) return op + stringify(args[0])

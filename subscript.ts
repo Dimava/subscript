@@ -21,4 +21,4 @@ export { parse, access, binary, unary, nary, group, token } from './src/parse.js
 export { compile, operator } from './src/compile.js'
 export { stringify } from './src/stringify.js'
 
-export default s => compile(parse(s))
+export default (s: string) => compile(parse(s))

@@ -17,6 +17,6 @@ export type BinaryNode = [token, Node, Node]
 export type NaryNode = [token, Node, ...Node[]]
 export type GroupNode = [token, Node]
 export type AccessNode = [token, Node, Node]
-export type LiteralNode = [undefined, string]
+export type LiteralNode = [undefined, token]
 export type VariableNode = token
 export type PlaceholderNode = null | undefined

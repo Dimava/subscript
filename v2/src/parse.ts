@@ -1,37 +1,38 @@
 import { SPACE } from "./const.js"
+import type { index, charCode, precedence } from "./types.js"
 
 /** current string, index and collected ids */
-export let idx, cur, lookup = []
+export let idx: index, cur: string, lookup = []
 
 /** no handling tagged literals since easily done on user side with cache, if needed */
-export function parse(s) {
-  return (idx = 0, cur = s, s = expr(), cur[idx] ? err() : s || '')
+export function parse(s: string) {
+  return (idx = 0 as index, cur = s, s = expr(), cur[idx] ? err() : s || '')
 }
 
 /** display error */
-export function err(msg = 'Bad syntax',
+export function err(msg: string = 'Bad syntax',
   lines = cur.slice(0, idx).split('\n'),
   last = lines.pop()
-) {
+): never {
   const before = cur.slice(idx - 108, idx).split('\n').pop()
   const after = cur.slice(idx, idx + 108).split('\n').shift()
   throw EvalError(`${msg} at ${lines.length}:${last.length} \`${idx >= 108 ? '…' : ''}${before}┃${after}\``, 'font-weight: bold')
 }
 
 /** advance until condition meets */
-export function next(is, from = idx, l) {
-  while (l = is(cur.charCodeAt(idx))) idx += l
+export function next(is: (c: charCode) => number, from: index = idx, l?: number) {
+  while (l = is(cur.charCodeAt(idx))) idx += l as index
   return cur.slice(from, idx)
 }
 
 /** advance n characters */
-export function skip() {
+export function skip(): string {
   return cur[idx++]
 }
 
 /** a + b - c */
-export function expr(prec = 0, end) {
-  let cc, token, newNode, fn
+export function expr(prec: precedence = 0 as precedence, end?: charCode) {
+  let cc: charCode, token, newNode, fn
 
   // chunk/token parser
   while (
@@ -45,19 +46,19 @@ export function expr(prec = 0, end) {
   ) token = newNode;
 
   // check end character
-  if (end) cc == end ? idx++ : err()
+  if (end) cc == end ? idx++ as index : err()
 
   return token
 }
 
 /** skip space chars, return first non-space character */
-export function space(cc) {
-  while ((cc = cur.charCodeAt(idx)) <= SPACE) idx++;
+export function space(cc?: charCode): charCode {
+  while ((cc = cur.charCodeAt(idx)) <= SPACE) idx++ as index;
   return cc
 }
 
 /** parse identifier (configurable) */
-export const id = parse.id = function(c) {
+export const id = parse.id = function(c: charCode): boolean {
   return (
     (c >= 48 && c <= 57) || // 0..9
     (c >= 65 && c <= 90) || // A...Z
@@ -75,44 +76,44 @@ export const id = parse.id = function(c) {
 
 /** create operator checker/mapper (see examples) */
 export function token(
-  op,
-  prec = SPACE,
-  map,
-  c = op.charCodeAt(0),
-  l = op.length,
+  op: string,
+  prec: precedence = SPACE as precedence,
+  map: (a: any) => any,
+  c: charCode = op.charCodeAt(0 as index),
+  l: number = op.length,
   prev = lookup[c],
-  word = op.toUpperCase() !== op // make sure word boundary comes after word operator
+  word: boolean = op.toUpperCase() !== op // make sure word boundary comes after word operator
 ) {
-  return lookup[c] = function(a, curPrec, curOp, from = idx) {
+  return lookup[c] = function(a: any, curPrec: precedence, curOp?: string, from: index = idx) {
     return (
       (curOp ?
         op == curOp :
         ((l < 2 || cur.substr(idx, l) == op) && (curOp = op)) // save matched op to avoid mismatches like `|` as part of `||`
       ) &&
       curPrec < prec && // matches precedence AFTER operator matched
-      !(word && parse.id(cur.charCodeAt(idx + l))) && // finished word, not part of bigger word
-      (idx += l, map(a) || (idx = from, !prev && err())) // throw if operator didn't detect usage pattern: (a;^b) etc
+      !(word && parse.id(cur.charCodeAt((idx + l) as index))) && // finished word, not part of bigger word
+      (idx += l as index, map(a) || (idx = from, !prev && err())) // throw if operator didn't detect usage pattern: (a;^b) etc
     ) ||
     prev?.(a, curPrec, curOp)
   }
 }
 
 /** right assoc is indicated by negative precedence (meaning go from right to left) */
-export function binary(op, prec, right = false) {
+export function binary(op: string, prec: precedence, right: boolean = false) {
   return token(op, prec, function(a, b) {
-    return a && (b = expr(prec - (right ? .5 : 0))) && [op, a, b]
+    return a && (b = expr((prec - (right ? .5 : 0)) as precedence)) && [op, a, b]
   })
 }
 
 /** post indicates postfix rather than prefix operator */
-export function unary(op, prec, post) {
+export function unary(op: string, prec: precedence, post?: boolean) {
   return token(op, prec, function(a) {
-    return post ? (a && [op, a]) : (!a && (a = expr(prec - .5)) && [op, a])
+    return post ? (a && [op, a]) : (!a && (a = expr((prec - .5) as precedence)) && [op, a])
   })
 }
 
 /** FIXME: skips means ,,, ;;; are allowed */
-export function nary(op, prec, skips) {
+export function nary(op: string, prec: precedence, skips?: boolean) {
   token(op, prec,
     function(a, b) {
       return (
@@ -130,9 +131,9 @@ export function nary(op, prec, skips) {
  * register (a), [b], {c} etc groups
  * FIXME: add "Unclosed paren" error
  */
-export function group(op, prec) {
+export function group(op: string, prec: precedence) {
   return token(op[0], prec, function(a) {
-    return (!a && [op, expr(0, op.charCodeAt(1))])
+    return (!a && [op, expr(0 as precedence, op.charCodeAt(1 as index))])
   })
 }
 
@@ -140,9 +141,9 @@ export function group(op, prec) {
  * register a(b), a[b], a<b> etc,
  * NOTE: we make sure `null` indicates placeholder
  */
-export function access(op, prec) {
+export function access(op: string, prec: precedence) {
   return token(op[0], prec, function(a) {
-    return (a && [op, a, expr(0, op.charCodeAt(1)) || null])
+    return (a && [op, a, expr(0 as precedence, op.charCodeAt(1 as index)) || null])
   })
 }
 

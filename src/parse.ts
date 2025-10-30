@@ -1,7 +1,7 @@
 import { PREC_0, PREC_DEFAULTED, SPACE } from "./const.js"
 import type { index, charCode, precedence, char, token, Node, GroupNode, AccessNode, UnaryNode, BinaryNode, NaryNode } from "./types.js"
 
-type OpFunc = (a: Node | undefined, curPrec: precedence, curOp?: token, from?: index) => Node | undefined
+type OpFunc = (a: Node | null, curPrec: precedence, curOp?: token, from?: index) => Node | null | undefined
 
 /** current index */
 export let idx: index
@@ -47,10 +47,10 @@ export function skip(): char {
 }
 
 /** a + b - c */
-export function expr(prec: precedence = 0 as precedence, end?: charCode): Node {
+export function expr(prec: precedence = 0 as precedence, end?: charCode): Node | null {
   let cc: charCode
-  let token: Node = null
-  let newNode: Node = null
+  let token: Node | null = null
+  let newNode: Node | null = null
 
   // chunk/token parser - parse a sequence of tokens/operators into an expression tree
   while (true) {
@@ -115,13 +115,13 @@ export function id(c: charCode): boolean {
 export function token(
   op: token,
   prec: precedence = PREC_DEFAULTED,
-  map: (a: Node | undefined) => Node | undefined,
+  map: (a: Parameters<OpFunc>[0]) => ReturnType<OpFunc> | null | undefined,
   c: charCode = op.charCodeAt(0 as index),
   l: number = op.length,
   prev = lookup[c],
   word: boolean = op.toUpperCase() !== op // make sure word boundary comes after word operator
 ): OpFunc {
-  return lookup[c] = (a, curPrec, curOp, from = idx) => {
+  return lookup[c] = (a, curPrec, curOp, from = idx): ReturnType<OpFunc> => {
     // check if operator matches
     if (!curOp) {
       if (l < 2 || cur.slice(idx, idx + l) === op) {

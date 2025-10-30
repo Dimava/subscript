@@ -16,12 +16,15 @@ declare global {
     }
 }
 
-export type Node = UnaryNode | BinaryNode | NaryNode | GroupNode | AccessNode | LiteralNode | VariableNode | PlaceholderNode
+export type Node = UnaryNode | BinaryNode | NaryNode | GroupNode | AccessNode | LiteralNode | VariableNode
 export type UnaryNode = [token, Node]
 export type BinaryNode = [token, Node, Node]
-export type NaryNode = [token, Node, ...Node[]]
-export type GroupNode = [token, Node]
-export type AccessNode = [token, Node, Node]
-export type LiteralNode = [undefined, token]
+export type NaryNode = [token, (Node | null), ...(Node | null)[]]
+export type GroupNode = [token, (Node | null)]
+export type AccessNode = [token, Node, (Node | null)]
+export type LiteralNode = [undefined, unknown]
 export type VariableNode = token
 export type PlaceholderNode = null
+
+
+export type ArrayNode = Extract<Node, any[]>

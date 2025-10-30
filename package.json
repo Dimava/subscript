@@ -83,6 +83,7 @@
   "devDependencies": {
     "rollup": "^2.60.2",
     "terser": "^5.10.0",
-    "tst": "^8.0.2"
+    "tst": "^8.0.2",
+    "@types/bun": "latest"
   }
 }
